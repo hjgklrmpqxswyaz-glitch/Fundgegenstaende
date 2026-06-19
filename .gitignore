@@ -1,0 +1,15 @@
+# PyCharm-interne Einstellungen ignorieren (behebt den CRLF-Fehler)
+.idea/
+*.xml
+
+# Lokale Passwörter und Umgebungsvariablen nicht in Git speichern
+.env
+
+# Datenbank für die Entwicklung (wird lokal gelassen)
+db.sqlite3
+
+# Bytecode-Dateien von Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -1,49 +1,35 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
-from .models import UserProfile, Gegenstand, ChatRoom, ChatMessage, UebergabeBericht
+from .models import Profil, Gegenstand, GegenstandBild, Chat, Nachricht, Bericht
 
+# Erlaubt es, Bilder direkt innerhalb der Gegenstand-Ansicht zu bearbeiten und anzusehen
+class GegenstandBildInline(admin.StackedInline):
+    model = GegenstandBild
+    extra = 1  # Zeigt standardmäßig ein leeres Zusatzfeld für neue Bilder an
+    max_num = 5  # Begrenzt die maximale Anzahl an Bildern im Admin-Interface auf 5
 
-# Das Profil direkt in die normale Benutzerverwaltung einbetten
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
-    can_delete = False
-    verbose_name_plural = 'Rollen-Profil'
-
-
-class UserAdmin(BaseUserAdmin):
-    inlines = (UserProfileInline,)
-    list_display = ('username', 'email', 'first_name', 'last_name', 'get_rolle')
-
-    def get_rolle(self, obj):
-        return obj.profile.get_rolle_display() if hasattr(obj, 'profile') else 'Keine Rolle'
-
-    get_rolle.short_description = 'Benutzerrolle'
-
-
-# Standard-User-Admin austauschen
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
-
-
-# Unsere neuen Fundbüro-Modelle registrieren
 @admin.register(Gegenstand)
 class GegenstandAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'fundort', 'funddatum', 'status', 'google_form_id')
-    list_filter = ('status', 'funddatum')
+    list_display = ('titel', 'fundort', 'funddatum', 'status', 'erstellt_am')
+    list_filter = ('status', 'erstellt_am')
     search_fields = ('titel', 'beschreibung', 'fundort')
+    inlines = [GegenstandBildInline]
 
+@admin.register(Profil)
+class ProfilAdmin(admin.ModelAdmin):
+    list_display = ('user', 'ist_mitarbeiter')
+    list_filter = ('ist_mitarbeiter',)
+    search_fields = ('user__username', 'user__email')
 
-@admin.register(ChatRoom)
-class ChatRoomAdmin(admin.ModelAdmin):
-    list_display = ('gegenstand', 'kunde', 'erstellt_am')
+@admin.register(Chat)
+class ChatAdmin(admin.ModelAdmin):
+    list_display = ('gegenstand', 'kunde', 'mitarbeiter', 'erstellt_am')
+    list_filter = ('erstellt_am',)
 
+@admin.register(Nachricht)
+class NachrichtAdmin(admin.ModelAdmin):
+    list_display = ('chat', 'sender', 'gesendet_am')
+    list_filter = ('gesendet_am',)
 
-@admin.register(ChatMessage)
-class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ('raum', 'sender', 'gesendet_am')
-
-
-@admin.register(UebergabeBericht)
-class UebergabeBerichtAdmin(admin.ModelAdmin):
-    list_display = ('gegenstand', 'kunde', 'bearbeiter', 'uebergabe_datum')
+@admin.register(Bericht)
+class BerichtAdmin(admin.ModelAdmin):
+    list_display = ('gegenstand', 'mitarbeiter', 'abgeholt_von', 'abgeholt_am')

@@ -1,77 +1,68 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
-# Erweiterung für das Benutzerprofil, um die Rollen sauber zu trennen
-class UserProfile(models.Model):
-    ROLE_CHOICES = [
-        ('kunde', 'Kunde (Suchender)'),
-        ('mitarbeiter', 'Mitarbeiter (Fundbüro-Bearbeiter)'),
-    ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    rolle = models.CharField(max_length=20, choices=ROLE_CHOICES, default='kunde')
-    telefonnummer = models.CharField(max_length=50, blank=True, null=True)
+class Profil(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profil')
+    ist_mitarbeiter = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} ({self.get_rolle_display()})"
+        return f"{self.user.username} ({'Mitarbeiter' if self.ist_mitarbeiter else 'Kunde'})"
 
-
-# Das Modell für die Fundgegenstände (wird später mit den CSV-Daten abgeglichen)
 class Gegenstand(models.Model):
     STATUS_CHOICES = [
-        ('verfuegbar', 'Verfügbar / Offen'),
-        ('bearbeitung', 'In Bearbeitung / Chat aktiv'),
-        ('ausgehaendigt', 'Ausgehändigt / Abgeschlossen'),
+        ('gesucht', 'Gesucht (vom Kunden gemeldet)'),
+        ('gefunden', 'Gefunden (im Bus abgegeben)'),
+        ('rueckgegeben', 'An Eigentümer übergeben'),
     ]
 
-    google_form_id = models.CharField(max_length=100, unique=True, verbose_name="Zeitstempel/ID von Google")
-    titel = models.CharField(max_length=200, verbose_name="Gegenstand")
-    beschreibung = models.TextField(blank=True, null=True, verbose_name="Beschreibung")
-    fundort = models.CharField(max_length=200, blank=True, null=True, verbose_name="Fundort")
-    funddatum = models.CharField(max_length=100, blank=True, null=True, verbose_name="Funddatum")
-    bild_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Bild-Link (Google Drive)")
-
-    # Der aktuelle Status steuert, ob der Gegenstand öffentlich sichtbar ist
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='verfuegbar')
+    google_form_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    titel = models.CharField(max_length=200)
+    beschreibung = models.TextField(blank=True)
+    fundort = models.CharField(max_length=200, blank=True)
+    funddatum = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='gefunden')
     erstellt_am = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.titel} [{self.get_status_display()}]"
+        return self.titel
 
-
-# Ein privater Chatraum pro Gegenstand und Kunde
-class ChatRoom(models.Model):
-    gegenstand = models.ForeignKey(Gegenstand, on_delete=models.CASCADE, related_name='chats')
-    kunde = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kunde_chats')
+class GegenstandBild(models.Model):
+    # Verknüpfung: Ein Gegenstand kann mehrere Bilder haben
+    gegenstand = models.ForeignKey(Gegenstand, on_delete=models.CASCADE, related_name='bilder')
+    bild_url = models.URLField(max_length=1000)
     erstellt_am = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('gegenstand', 'kunde')  # Pro Kunde und Gegenstand nur ein Chatraum
+        verbose_name = "Gegenstand-Bild"
+        verbose_name_plural = "Gegenstand-Bilder"
 
     def __str__(self):
-        return f"Chat: {self.kunde.username} zu {self.gegenstand.titel}"
+        return f"Bild für {self.gegenstand.titel}"
 
+class Chat(models.Model):
+    gegenstand = models.ForeignKey(Gegenstand, on_delete=models.CASCADE, related_name='chats')
+    kunde = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kunden_chats')
+    mitarbeiter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mitarbeiter_chats', null=True, blank=True)
+    erstellt_am = models.DateTimeField(auto_now_add=True)
 
-# Die einzelnen Chat-Nachrichten im Raum
-class ChatMessage(models.Model):
-    raum = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='nachrichten')
+    def __str__(self):
+        return f"Chat zu: {self.gegenstand.titel} ({self.kunde.username})"
+
+class Nachricht(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='nachrichten')
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    nachricht = models.TextField()
+    text = models.TextField()
     gesendet_am = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Von {self.sender.username} am {self.gesendet_am.strftime('%d.%m.%Y %H:%M')}"
 
-
-# Der rechtlich bindende Übergabebericht zum Ausdrucken
-class UebergabeBericht(models.Model):
+class Bericht(models.Model):
     gegenstand = models.OneToOneField(Gegenstand, on_delete=models.CASCADE, related_name='bericht')
-    kunde = models.ForeignKey(User, on_delete=models.PROTECT, related_name='berichte_empfangen',
-                              verbose_name="Abholer (Kunde)")
-    bearbeiter = models.ForeignKey(User, on_delete=models.PROTECT, related_name='berichte_erstellt',
-                                   verbose_name="Mitarbeiter")
-    uebergabe_datum = models.DateTimeField(auto_now_add=True, verbose_name="Zeitpunkt der Übergabe")
-    bemerkung = models.TextField(blank=True, null=True, verbose_name="Interne Vermerke (z.B. Ausweisnummer)")
+    mitarbeiter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='erstellte_berichte')
+    notizen = models.TextField()
+    abgeholt_von = models.CharField(max_length=200, blank=True)
+    abgeholt_am = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Bericht für {self.gegenstand.titel} - {self.uebergabe_datum.strftime('%d.%m.%Y')}"
+        return f"Abschlussbericht für: {self.gegenstand.titel}"

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Fundbüro - Fundgegenstände</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 10px;
+        }
+        .gegenstand-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .gegenstand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .gegenstand-titel {
+            font-size: 1.4em;
+            margin: 0;
+            color: #2980b9;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .status-gefunden { background-color: #e1f5fe; color: #0288d1; }
+        .status-gesucht { background-color: #fff3e0; color: #f57c00; }
+        .status-rueckgegeben { background-color: #e8f5e9; color: #388e3c; }
+
+        .beschreibung {
+            white-space: pre-line;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .bilder-galerie {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .bilder-galerie img {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            transition: transform 0.2s;
+        }
+        .bilder-galerie img:hover {
+            transform: scale(1.05);
+        }
+        .details-footer {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Aktuelle Fundgegenstände</h1>
+
+    {% if gegenstaende %}
+        {% for g in gegenstaende %}
+            <div class="gegenstand-card">
+                <div class="gegenstand-header">
+                    <h2 class="gegenstand-titel">{{ g.titel }}</h2>
+                    <span class="status-badge
+                        {% if g.status == 'gefunden' %}status-gefunden
+                        {% elif g.status == 'gesucht' %}status-gesucht
+                        {% else %}status-rueckgegeben{% endif %}">
+                        {{ g.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="beschreibung">
+                    {{ g.beschreibung }}
+                </div>
+
+                <div class="details-footer">
+                    <strong>Fundort:</strong> {{ g.fundort }} | <strong>Datum:</strong> {{ g.funddatum }}
+                </div>
+
+                {% if g.bilder.all %}
+                    <div class="bilder-galerie">
+                        {% for bild in g.bilder.all %}
+                            <a href="{{ bild.bild_url }}" target="_blank">
+                                <img src="{% if bild.direkt_bild_url %}{{ bild.direkt_bild_url }}{% else %}{{ bild.bild_url }}{% endif %}" alt="Bild zu {{ g.titel }}">
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Es sind aktuell keine Fundgegenstände registriert.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

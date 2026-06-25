@@ -6,7 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; color: #333; }
-        .navbar-brand { font-weight: bold; color: #1d3557; }
+        .navbar-custom { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 10px; }
         .status-badge { font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; }
         .img-thumbnail-custom { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; }
@@ -15,7 +15,25 @@
 </head>
 <body>
 
-<div class="container my-5">
+<nav class="navbar navbar-expand-lg navbar-custom mb-4">
+    <div class="container">
+        <span class="navbar-brand fw-bold text-primary">Fundbüro Portal</span>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            {% if user.is_authenticated %}
+                <span class="text-muted small">Eingeloggt als: <strong>{{ user.username }}</strong></span>
+                <form method="POST" action="{% url 'logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold">Abmelden</button>
+                </form>
+            {% else %}
+                <span class="text-muted small">Nicht angemeldet</span>
+                <a href="{% url 'login' %}" class="btn btn-primary btn-sm fw-bold">Anmelden</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
     <h1 class="mb-4 text-center text-primary-emphasis fw-bold">Aktuelle Fundgegenstände</h1>
 
     <div class="filter-section mb-5">

@@ -103,3 +103,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Standard-ID-Feld-Typ
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Wohin geht es nach dem Login? Zur Liste der Gegenstände.
+LOGIN_REDIRECT_URL = 'gegenstand_liste'
+
+# Wohin geht es nach dem Logout? Zur Login-Seite.
+LOGOUT_REDIRECT_URL = 'login'

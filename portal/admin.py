@@ -1,34 +1,20 @@
 from django.contrib import admin
-from .models import Profil, Gegenstand, GegenstandBild, Chat, Nachricht, Bericht
+from .models import Gegenstand, GegenstandBild, Nachricht
 
-@admin.register(Profil)
-class ProfilAdmin(admin.ModelAdmin):
-    list_display = ('user', 'ist_mitarbeiter', 'telefonnummer')
-    list_filter = ('ist_mitarbeiter',)
-
+# Erlaubt es, Bilder direkt in der Gegenstands-Ansicht im Admin-Bereich zu sehen
 class GegenstandBildInline(admin.TabularInline):
     model = GegenstandBild
     extra = 1
 
 @admin.register(Gegenstand)
 class GegenstandAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'status', 'fundort', 'funddatum', 'erstellt_am')
+    list_display = ('titel', 'fundort', 'funddatum', 'status')
     list_filter = ('status', 'funddatum')
     search_fields = ('titel', 'beschreibung', 'fundort')
     inlines = [GegenstandBildInline]
 
-@admin.register(Chat)
-class ChatAdmin(admin.ModelAdmin):
-    list_display = ('gegenstand', 'kunde', 'mitarbeiter', 'erstellt_am')
-    list_filter = ('erstellt_am',)
-
 @admin.register(Nachricht)
 class NachrichtAdmin(admin.ModelAdmin):
-    list_display = ('chat', 'sender', 'gesendet_am')
-    list_filter = ('gesendet_am',)
-
-@admin.register(Bericht)
-class BerichtAdmin(admin.ModelAdmin):
-    # Hier sind jetzt die exakt korrekten Feldnamen aus deinem Modell eingetragen:
-    list_display = ('gegenstand', 'mitarbeiter', 'abholer_name', 'ausgehaendigt_am')
-    list_filter = ('ausgehaendigt_am',)
+    list_display = ('gegenstand', 'absender', 'zeitstempel')
+    list_filter = ('zeitstempel', 'absender')
+    search_fields = ('text', 'absender__username', 'gegenstand__titel')

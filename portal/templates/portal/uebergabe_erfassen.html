@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 text-light">
+    <div class="card bg-dark border-secondary max-width-600 mx-auto">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="h5 mb-0">Eigentümer-Daten erfassen</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small">Bitte tragen Sie die Daten des Abholers ein. Nach dem Absenden wird der Übergabeschein generiert und der Gegenstand archiviert.</p>
+            <h5 class="text-warning mb-3">Objekt: {{ gegenstand.bezeichnung }}</h5>
+
+            <form method="POST">
+                {% csrf_block %}
+                <div class="mb-3">
+                    <label class="form-label">Vollständiger Name (Vor- und Nachname)</label>
+                    <input type="text" name="name" class="form-control bg-dark text-white border-secondary" required placeholder="z.B. Max Mustermann">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Straße / Hausnummer</label>
+                    <input type="text" name="strasse" class="form-control bg-dark text-white border-secondary" required placeholder="z.B. Hauptstraße 12">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">PLZ / Ort</label>
+                    <input type="text" name="plz_ort" class="form-control bg-dark text-white border-secondary" required placeholder="z.B. 12345 Musterstadt">
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'gegenstand_detail' gegenstand.pk %}" class="btn btn-outline-secondary">Abbrechen</a>
+                    <button type="submit" class="btn btn-success">Daten speichern & Beleg drucken</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

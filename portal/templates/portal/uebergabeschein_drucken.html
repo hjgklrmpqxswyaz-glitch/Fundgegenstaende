@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Übergabeschein - {{ gegenstand.bezeichnung }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #000; background: #fff; padding: 40px; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 50px; border-bottom: 2px solid #000; padding-bottom: 20px; }
+        .section { margin-bottom: 30px; }
+        .section h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; }
+        table { width: 100%; margin-bottom: 20px; }
+        td { padding: 8px 0; vertical-align: top; }
+        .label { font-weight: bold; width: 30%; }
+        .signatures { margin-top: 80px; display: flex; justify-content: space-between; }
+        .sig-box { width: 45%; border-top: 1px solid #000; text-align: center; padding-top: 10px; margin-top: 60px; }
+        .btn-print { background: #007bff; color: white; padding: 10px 20px; border: none; font-size: 16px; cursor: pointer; border-radius: 5px; }
+        @media print { .btn-print { display: none; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+
+    <div style="text-align: right;">
+        <button class="btn-print" onclick="window.print()">🖨️ Jetzt drucken / Als PDF speichern</button>
+    </div>
+
+    <div class="header">
+        <h1>ÜBERBESSCHEIN / QUITTUNG</h1>
+        <p><strong>Verkehrsbetriebe Dienststelle — Fundbüro</strong></p>
+    </div>
+
+    <div class="section">
+        <h3>1. Daten des Empfängers / Abholers</h3>
+        <table>
+            <tr><td class="label">Name, Vorname:</td><td>{{ abholer.name }}</td></tr>
+            <tr><td class="label">Anschrift:</td><td>{{ abholer.strasse }}, {{ abholer.plz_ort }}</td></tr>
+            <tr><td class="label">Ausgehändigt am:</td><td>{{ abholer.datum }} Uhr</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>2. Details zum Fundgegenstand</h3>
+        <table>
+            <tr><td class="label">Gegenstand-ID:</td><td>#{{ gegenstand.id }}</td></tr>
+            <tr><td class="label">Bezeichnung:</td><td>{{ gegenstand.bezeichnung }}</td></tr>
+            <tr><td class="label">Fundort & Datum:</td><td>Line/Ort: {{ gegenstand.fundort }} vom {{ gegenstand.funddatum|date:"d.m.Y" }}</td></tr>
+            <tr><td class="label">Beschreibung:</td><td>{{ gegenstand.beschreibung }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section" style="margin-top: 40px;">
+        <p>Der Empfänger bestätigt mit seiner Unterschrift, den oben genannten Gegenstand vollständig und im beschriebenen Zustand als rechtmäßiger Eigentümer/Empfangsberechtigter entgegengenommen zu haben.</p>
+    </div>
+
+    <div class="signatures">
+        <div class="sig-box">Unterschrift Mitarbeiter/Disponent</div>
+        <div class="sig-box">Unterschrift Empfänger/Kunde</div>
+    </div>
+
+    <div style="margin-top: 50px; text-align: center;">
+        <a href="{% url 'mitarbeiter_dashboard' %}" class="btn-print" style="background: #6c757d; text-decoration: none; display: inline-block;">Zurück zum Dashboard</a>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Mitarbeiter Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="font-bold text-slate-900">Mitarbeiter Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'gegenstand_liste' %}" class="text-sm text-blue-600 hover:underline">Zur öffentlichen Liste</a>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-lg text-sm font-semibold border border-rose-200 hover:bg-rose-100">
+                        Abmelden
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <h2 class="text-xl font-bold mb-6">Alle Fundgegenstände verwalten</h2>
+
+        <div class="space-y-4">
+            {% for g in gegenstaende %}
+                <div class="bg-white p-5 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden border">
+                            {% if g.bild_liste %}
+                                <img src="{{ g.bild_liste.0 }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-xl opacity-30">📦</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="font-bold">{{ g.obj.bezeichnung }}</h3>
+                            <p class="text-xs text-slate-500">Linie {{ g.obj.fundort }} • {{ g.obj.funddatum }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <a href="{% url 'uebergabe_erfassen' g.obj.pk %}" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg">Übergeben</a>
+                        <a href="{% url 'gegenstand_entsorgen' g.obj.pk %}" class="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg">Entsorgen</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

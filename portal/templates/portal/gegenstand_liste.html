@@ -3,106 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <title>Aktuelle Fundgegenstände</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; color: #333; }
-        .navbar-custom { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 10px; }
-        .status-badge { font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; }
-        .img-thumbnail-custom { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; }
-        .filter-section { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-custom mb-4">
-    <div class="container">
-        <span class="navbar-brand fw-bold text-primary">Fundbüro Portal</span>
-        <div class="ms-auto d-flex align-items-center gap-3">
-            {% if user.is_authenticated %}
-                <span class="text-muted small">Eingeloggt als: <strong>{{ user.username }}</strong></span>
-                <form method="POST" action="{% url 'logout' %}" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold">Abmelden</button>
-                </form>
-            {% else %}
-                <span class="text-muted small">Nicht angemeldet</span>
-                <a href="{% url 'login' %}" class="btn btn-primary btn-sm fw-bold">Anmelden</a>
-            {% endif %}
+<body class="bg-slate-50 min-h-screen">
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="font-bold text-slate-900">Fundbüro</h1>
+            <a href="{% url 'login' %}" class="text-sm text-blue-600 font-semibold hover:underline">Anmelden</a>
         </div>
-    </div>
-</nav>
+    </header>
 
-<div class="container my-4">
-    <h1 class="mb-4 text-center text-primary-emphasis fw-bold">Aktuelle Fundgegenstände</h1>
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-center mb-10 text-slate-900">Aktuelle Fundgegenstände</h2>
 
-    <div class="filter-section mb-5">
-        <form method="GET" action="" class="row g-3">
-            <div class="col-md-4">
-                <label for="q" class="form-label fw-semibold">Was suchst du?</label>
-                <input type="text" name="q" id="q" class="form-control" placeholder="z.B. Kopfhörer, Schlüssel..." value="{{ suchbegriff }}">
-            </div>
-            <div class="col-md-3">
-                <label for="linie" class="form-label fw-semibold">Bus-Linie / Fundort</label>
-                <input type="text" name="linie" id="linie" class="form-control" placeholder="z.B. 954 oder Stadtbus" value="{{ linie_filter }}">
-            </div>
-            <div class="col-md-3">
-                <label for="datum" class="form-label fw-semibold">Wann verloren? (Datum)</label>
-                <input type="text" name="datum" id="datum" class="form-control" placeholder="z.B. 30.06.2026" value="{{ datum_filter }}">
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Suchen</button>
-            </div>
-            {% if suchbegriff or linie_filter or datum_filter %}
-                <div class="col-12 text-end">
-                    <a href="?" class="text-decoration-none text-muted small">❌ Filter zurücksetzen</a>
-                </div>
-            {% endif %}
-        </form>
-    </div>
+        <div class="space-y-4">
+            {% for g in gegenstaende %}
+                <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-6 shadow-sm">
 
-    <div class="row">
-        <div class="col-12">
-            {% if gegenstaende %}
-                {% for gegenstand in gegenstaende %}
-                    <div class="card mb-4 p-4">
-                        <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-3">
-                            <h3 class="text-primary fw-bold mb-0">{{ gegenstand.titel }}</h3>
-                            <span class="badge bg-info-subtle text-info-emphasis status-badge fw-bold">
-                                {{ gegenstand.get_status_display }}
-                            </span>
-                        </div>
-
-                        <div class="mb-3 text-muted">
-                            <p class="mb-1">{{ gegenstand.beschreibung }}</p>
-                        </div>
-
-                        <div class="row g-2 mb-3 small text-secondary">
-                            <div class="col-md-6"><strong>Fundort:</strong> {{ gegenstand.fundort }}</div>
-                            <div class="col-md-6"><strong>Datum:</strong> {{ gegenstand.funddatum }}</div>
-                        </div>
-
-                        {% if gegenstand.bilder.all %}
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                {% for bild in gegenstand.bilder.all %}
-                                    <a href="{{ bild.bild_url }}" target="_blank">
-                                        <img src="{{ bild.direkt_bild_url }}" class="img-thumbnail img-thumbnail-custom" alt="Bild zu {{ gegenstand.titel }}">
-                                    </a>
-                                {% endfor %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for bild in g.bilder.all %}
+                            <div class="w-16 h-16 rounded-lg overflow-hidden border border-slate-100">
+                                <img src="{{ bild.bild_url }}" class="w-full h-full object-cover" alt="Fundstück">
                             </div>
-                        {% endif %}
+                        {% empty %}
+                            <div class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-xl opacity-30">📦</div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-info text-center p-5" role="alert">
-                    <h4 class="alert-heading fw-bold">Keine Gegenstände gefunden</h4>
-                    <p class="mb-0">Passe deine Suche an oder überprüfe die Schreibweise.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <div class="flex-1">
+                        <p class="text-xs text-blue-600 font-bold">Linie {{ g.fundort }} • {{ g.funddatum|date:"d. F Y" }}</p>
+                        <h3 class="font-bold text-lg text-slate-900">{{ g.bezeichnung }}</h3>
+                        <p class="text-sm text-slate-500">{{ g.beschreibung|truncatewords:20 }}</p>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-20">
+                    <p class="text-slate-500">Momentan sind keine Fundgegenstände gemeldet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer class="text-center text-slate-400 text-xs py-10">
+        © 2026 Fundbüro. Alle Daten werden in Echtzeit synchronisiert.
+    </footer>
 </body>
 </html>

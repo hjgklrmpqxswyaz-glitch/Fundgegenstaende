@@ -2,50 +2,342 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Aktuelle Fundgegenstände</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Fundbüro - Fundgegenstände</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+        }
+        .admin-btn-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .admin-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .admin-btn:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        /* Einzeiliges Tabellen-Layout für Desktop */
+        .filter-form {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1.5fr auto auto;
+            gap: 15px;
+            align-items: flex-end;
+            white-space: nowrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background-color: #fff;
+            height: 20px;
+            box-sizing: content-box;
+        }
+        .filter-submit {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            height: 38px;
+        }
+        .filter-submit:hover {
+            background-color: #0056b3;
+        }
+        .filter-reset {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            height: 38px;
+        }
+        .filter-reset:hover {
+            background-color: #d0d0d0;
+        }
+
+        /* Mobil-Optimierung */
+        @media (max-width: 768px) {
+            .filter-form {
+                grid-template-columns: 1fr;
+                white-space: normal;
+                gap: 12px;
+            }
+            .filter-submit, .filter-reset {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .gegenstand-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .gegenstand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .gegenstand-titel {
+            font-size: 1.5em;
+            margin: 0;
+            color: #007bff;
+            text-transform: capitalize;
+        }
+
+        .details-liste {
+            margin: 15px 0;
+            font-size: 0.95em;
+            color: #555;
+            line-height: 1.6;
+        }
+        .details-liste div {
+            margin-bottom: 4px;
+        }
+        .bilder-galerie {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .bilder-galerie img {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .keine-daten {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+            display: none;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    <header class="bg-white shadow-sm border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <h1 class="font-bold text-slate-900">Fundbüro</h1>
-            <a href="{% url 'login' %}" class="text-sm text-blue-600 font-semibold hover:underline">Anmelden</a>
+<body>
+
+<div class="admin-btn-container">
+    <a href="/admin/" class="admin-btn">Anmelden</a>
+</div>
+
+<div class="container">
+    <h1>Aktuelle Fundgegenstände</h1>
+
+    <div class="filter-form">
+        <div class="filter-group">
+            <label>Was suchst du?</label>
+            <input type="text" id="searchBezeichnung" placeholder="z.B. Kopfhörer, Schlüssel..." onkeyup="checkAutoReset()">
         </div>
-    </header>
+        <div class="filter-group">
+            <label>Bus-Linie / Fundort</label>
+            <input type="text" id="searchFundort" placeholder="z.B. 954 oder Stadtbus" onkeyup="checkAutoReset()">
+        </div>
+        <div class="filter-group">
+            <label>Wann verloren? (Datum)</label>
+            <input type="text" id="searchDatum" placeholder="z.B. 30.06.2026" onchange="checkAutoReset()">
+        </div>
+        <button type="button" class="filter-submit" onclick="jsFilter()">Suchen</button>
+        <button type="button" class="filter-reset" onclick="resetFilter()">X</button>
+    </div>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <h2 class="text-3xl font-bold text-center mb-10 text-slate-900">Aktuelle Fundgegenstände</h2>
-
-        <div class="space-y-4">
+    <div id="cardsContainer">
+        {% if gegenstaende %}
             {% for g in gegenstaende %}
-                <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-6 shadow-sm">
+                <div class="gegenstand-card"
+                     data-bezeichnung="{{ g.bezeichnung|lower }} {{ g.beschreibung|lower }}"
+                     data-fundort="{{ g.fundort|lower }}"
+                     data-datum-iso="{{ g.funddatum|date:'Y-m-d' }}"
+                     data-datum-de="{{ g.funddatum|date:'d.m.Y' }}">
 
-                    <div class="flex flex-wrap gap-2">
-                        {% for bild in g.bilder.all %}
-                            <div class="w-16 h-16 rounded-lg overflow-hidden border border-slate-100">
-                                <img src="{{ bild.bild_url }}" class="w-full h-full object-cover" alt="Fundstück">
-                            </div>
-                        {% empty %}
-                            <div class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-xl opacity-30">📦</div>
-                        {% endfor %}
+                    <div class="gegenstand-header">
+                        <h2 class="gegenstand-titel">
+                            {% if g.beschreibung %}{{ g.beschreibung }}{% else %}{{ g.bezeichnung }}{% endif %}
+                        </h2>
                     </div>
 
-                    <div class="flex-1">
-                        <p class="text-xs text-blue-600 font-bold">Linie {{ g.fundort }} • {{ g.funddatum|date:"d. F Y" }}</p>
-                        <h3 class="font-bold text-lg text-slate-900">{{ g.bezeichnung }}</h3>
-                        <p class="text-sm text-slate-500">{{ g.beschreibung|truncatewords:20 }}</p>
+                    <div class="details-liste">
+                        <div><strong>Linie / Fundort:</strong> {{ g.fundort }}</div>
+                        <div><strong>Datum:</strong> {{ g.funddatum|date:"d.m.Y" }}</div>
+                        <div><strong>Bus:</strong> {{ g.bezeichnung }}</div>
                     </div>
-                </div>
-            {% empty %}
-                <div class="text-center py-20">
-                    <p class="text-slate-500">Momentan sind keine Fundgegenstände gemeldet.</p>
+
+                    {% if g.bilder.all %}
+                        <div class="bilder-galerie">
+                            {% for bild in g.bilder.all %}
+                                <a href="{{ bild.bild_url }}" target="_blank">
+                                    <img src="" alt="Bild zu {{ g.bezeichnung }}" class="google-img" data-raw-url="{{ bild.bild_url }}">
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             {% endfor %}
-        </div>
-    </main>
+        {% endif %}
 
-    <footer class="text-center text-slate-400 text-xs py-10">
-        © 2026 Fundbüro. Alle Daten werden in Echtzeit synchronisiert.
-    </footer>
+        <div id="noDataMessage" class="keine-daten">
+            <p>Es sind aktuell keine Fundgegenstände registriert, die auf deine Suche passen.</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+
+<script>
+    let fp;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const images = document.querySelectorAll('.google-img');
+        images.forEach(img => {
+            const rawUrl = img.getAttribute('data-raw-url');
+            if (rawUrl) {
+                const match = rawUrl.match(/(?:id=|\/d\/|src=)([\w-]+)/);
+                if (match && match[1]) {
+                    img.src = "https://drive.google.com/uc?export=view&id=" + match[1];
+                } else {
+                    img.src = rawUrl;
+                }
+            }
+        });
+
+        fp = flatpickr("#searchDatum", {
+            locale: "de",
+            dateFormat: "d.m.Y",
+            allowInput: true
+        });
+    });
+
+    function checkAutoReset() {
+        const searchBez = document.getElementById('searchBezeichnung').value.trim();
+        const searchOrt = document.getElementById('searchFundort').value.trim();
+        const searchDat = document.getElementById('searchDatum').value.trim();
+
+        if (searchBez === "" && searchOrt === "" && searchDat === "") {
+            clearAllDisplays();
+        }
+    }
+
+    function resetFilter() {
+        document.getElementById('searchBezeichnung').value = "";
+        document.getElementById('searchFundort').value = "";
+        if (fp) {
+            fp.clear();
+        } else {
+            document.getElementById('searchDatum').value = "";
+        }
+        clearAllDisplays();
+    }
+
+    function clearAllDisplays() {
+        const cards = document.querySelectorAll('.gegenstand-card');
+        cards.forEach(card => card.style.display = "");
+        document.getElementById('noDataMessage').style.display = "none";
+    }
+
+    function jsFilter() {
+        const searchBez = document.getElementById('searchBezeichnung').value.toLowerCase().trim();
+        const searchOrt = document.getElementById('searchFundort').value.toLowerCase().trim();
+        let searchDat = document.getElementById('searchDatum').value.trim();
+
+        const cards = document.querySelectorAll('.gegenstand-card');
+        let sichtbareCards = 0;
+
+        cards.forEach(card => {
+            const cardBez = card.getAttribute('data-bezeichnung') || "";
+            const cardOrt = card.getAttribute('data-fundort') || "";
+            const cardDatIso = card.getAttribute('data-datum-iso') || "";
+            const cardDatDe = card.getAttribute('data-datum-de') || "";
+
+            const matchBez = searchBez === "" || cardBez.includes(searchBez);
+            const matchOrt = searchOrt === "" || cardOrt.includes(searchOrt);
+
+            let matchDat = searchDat === "";
+            if (!matchDat) {
+                if (fp && fp.selectedDates.length > 0) {
+                    const selectedIso = fp.formatDate(fp.selectedDates[0], "Y-m-d");
+                    if (cardDatIso === selectedIso) matchDat = true;
+                }
+                if (cardDatDe.includes(searchDat) || cardDatIso.includes(searchDat)) {
+                    matchDat = true;
+                }
+            }
+
+            if (matchBez && matchOrt && matchDat) {
+                card.style.display = "";
+                sichtbareCards++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        const noDataMsg = document.getElementById('noDataMessage');
+        if (sichtbareCards === 0) {
+            noDataMsg.style.display = "block";
+        } else {
+            noDataMsg.style.display = "none";
+        }
+    }
+</script>
+
 </body>
 </html>
